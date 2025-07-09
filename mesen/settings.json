@@ -8665,12 +8665,12 @@
       "HighlightBreakpoints": false,
       "MemoryType": "NesMemory",
       "WindowSize": {
-        "Width": 759,
-        "Height": 548
+        "Width": 668,
+        "Height": 546
       },
       "WindowLocation": {
-        "X": 3364,
-        "Y": 247
+        "X": 1468,
+        "Y": 366
       },
       "WindowIsMaximized": false
     },
@@ -10039,6 +10039,14 @@
     "Items": [
       {
         "RomFile": {
+          "Path": "D:\\Dev\\Retro\\nes-dev\\projects\\src/game.nes",
+          "InnerFile": "",
+          "InnerFileIndex": 0
+        },
+        "PatchFile": null
+      },
+      {
+        "RomFile": {
           "Path": "D:\\Dev\\Retro\\nes-dev\\projects\\src/controller.nes",
           "InnerFile": "",
           "InnerFileIndex": 0
@@ -10108,14 +10116,6 @@
           "InnerFileIndex": 0
         },
         "PatchFile": null
-      },
-      {
-        "RomFile": {
-          "Path": "C:\\Dev\\Retro\\nes-dev\\projects\\src/startup.nes",
-          "InnerFile": "",
-          "InnerFileIndex": 0
-        },
-        "PatchFile": null
       }
     ]
   },
@@ -10173,12 +10173,12 @@
   },
   "MainWindow": {
     "WindowSize": {
-      "Width": 681,
-      "Height": 664
+      "Width": 682,
+      "Height": 665
     },
     "WindowLocation": {
-      "X": -1204,
-      "Y": 57
+      "X": 0,
+      "Y": 0
     },
     "WindowIsMaximized": false
   },

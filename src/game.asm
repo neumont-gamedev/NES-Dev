@@ -33,13 +33,14 @@ SPRITE_3_ADDR = oam + 12
 .segment "ZEROPAGE"
 ; Zero Page Memory Map
 ; $00-$0F: General purpose variables and pointers
-temp_var:       .res 1    ; General purpose temp variable
-temp_var2:      .res 1    ; Second temp variable
-temp_ptr_low:   .res 1    ; 16-bit pointer (2 bytes)
-temp_ptr_high:  .res 1    ; 16-bit pointer (2 bytes)
+temp_var:               .res 1    ; General purpose temp variable
+temp_var2:              .res 1    ; Second temp variable
+temp_ptr_low:           .res 1    ; 16-bit pointer (2 bytes)
+temp_ptr_high:          .res 1    ; 16-bit pointer (2 bytes)
+random_num:             .res 1    ; Random number generator value
 
 ; Reserve remaining space in this section if needed
-                .res 10   ; Pad to $10 (optional - depends on your needs)
+                        .res 11   ; Pad to $10 (optional - depends on your needs)
 
 ; $10-$1F: Controller input
 controller_1:           .res 1    ; Current frame controller 1 state
@@ -50,18 +51,20 @@ controller_1_pressed:   .res 1    ; Check if pressed
 controller_1_released:  .res 1    ; Check if released
 
 ; Reserve remaining space in this section if needed
-                    .res 10   ; Pad to $20 (optional)
+                        .res 10   ; Pad to $20 (optional)
 
 ; $20-$2F: Game state variables
-game_state:     .res 1    ; Current game state
-player_x:       .res 1    ; Player X position
-player_y:       .res 1    ; Player Y position
-player_vel_x:   .res 1    ; Player X velocity
-player_vel_y:   .res 1    ; Player Y velocity
-score:          .res 1    ; Score low byte
-
+game_state:             .res 1    ; Current game state
+player_x:               .res 1    ; Player X position
+player_y:               .res 1    ; Player Y position
+player_vel_x:           .res 1    ; Player X velocity
+player_vel_y:           .res 1    ; Player Y velocity
+score:                  .res 1    ; Score low byte
+scroll:                 .res 1    ; Scroll screen
+time:                   .res 1    ; Time (60hz = 60 FPS)
+seconds:                .res 1    ; Seconds
 ; Reserve remaining space in this section if needed
-                .res 10   ; Pad to $30 (optional)
+                        .res 07   ; Pad to $30 (optional)
 
 ;*****************************************************************
 ; OAM (Object Attribute Memory) ($0200–$02FF)
@@ -88,6 +91,7 @@ oam: .res 256	; sprite OAM data
 
 ; Non-Maskable Interrupt Handler - called during VBlank
 .proc nmi_handler
+
   RTI                     ; Return from interrupt (not using NMI yet)
 .endproc
 
@@ -164,42 +168,52 @@ remaining_loop:
     CPY #192                               ; Stop after 192 bytes (960 - 768)
     BNE remaining_loop
 
-    ; Reset scroll registers to 0,0 (needed after VRAM access)
-    LDA #$00
-    STA PPU_SCROLL                         ; Write horizontal scroll
-    STA PPU_SCROLL                         ; Write vertical scroll
 
-    RTS                                    ; Done
+  ; set text location
+ 	LDA PPU_STATUS ; reset address latch
+ 	LDA #$20 ; set PPU address to $208A (Row = 4, Column = 10)
+ 	STA PPU_ADDRESS
+ 	LDA #$8A
+ 	STA PPU_ADDRESS
+
+  ; print text
+ 	; draw some text on the screen
+  LDX #0
+textloop:
+  LDA hello_txt, X
+  STA PPU_VRAM_IO
+  INX
+  CMP #0
+  BEQ :+
+  JMP textloop
+:
+
+  ; Reset scroll registers to 0,0 (needed after VRAM access)
+  LDA #$00
+  STA PPU_SCROLL                         ; Write horizontal scroll
+  STA PPU_SCROLL                         ; Write vertical scroll
+
+  RTS                                    ; Done
 
 .endproc
 
 .proc init_sprites
-  LDA #4
+  ; set sprite tiles
+  LDA #1
   STA SPRITE_0_ADDR + SPRITE_OFFSET_TILE
-  LDA #5
+  LDA #2
   STA SPRITE_1_ADDR + SPRITE_OFFSET_TILE
-  LDA #$14
+  LDA #3
   STA SPRITE_2_ADDR + SPRITE_OFFSET_TILE
+  LDA #4
+  STA SPRITE_3_ADDR + SPRITE_OFFSET_TILE
 
-  LDA #20
-  STA player_y
-
-  STA SPRITE_0_ADDR + SPRITE_OFFSET_Y
-  STA SPRITE_1_ADDR + SPRITE_OFFSET_Y
-
-  CLC
-  ADC #8
-  STA SPRITE_2_ADDR + SPRITE_OFFSET_Y
-
-  LDA #30
+  LDA #128
   STA player_x
 
-  STA SPRITE_0_ADDR + SPRITE_OFFSET_X
-  STA SPRITE_2_ADDR + SPRITE_OFFSET_X
+  LDA #190
+  STA player_y
 
-  CLC
-  ADC #84
-  STA SPRITE_1_ADDR + SPRITE_OFFSET_X
 
   RTS
 .endproc
@@ -223,6 +237,7 @@ remaining_loop:
   CLC
   ADC #8
   STA SPRITE_1_ADDR + SPRITE_OFFSET_X
+  STA SPRITE_3_ADDR + SPRITE_OFFSET_X
 
   LDA player_y
   STA SPRITE_0_ADDR + SPRITE_OFFSET_Y
@@ -230,6 +245,13 @@ remaining_loop:
   CLC
   ADC #8
   STA SPRITE_2_ADDR + SPRITE_OFFSET_Y
+  STA SPRITE_3_ADDR + SPRITE_OFFSET_Y
+
+  ;INC scroll
+  ;LDA scroll
+  LDA #$00
+  STA PPU_SCROLL                         ; Write horizontal scroll
+  STA PPU_SCROLL                         ; Write vertical scroll
 
   ; Set OAM address to 0 — required before DMA or manual OAM writes
   LDA #$00
@@ -289,7 +311,9 @@ not_left:
 ; an infinite loop where it waits for VBlank and updates sprite data.
 ;******************************************************************************
 .proc main
-
+    ; seed the random number
+    LDA #$45
+    STA random_num
     ;--------------------------------------------------------------------------
     ; Configure PPU Control Register ($2000)
     ; - Enable NMI on VBlank (bit 7 = 1)
@@ -307,6 +331,8 @@ not_left:
     STA PPU_MASK
 
 forever:
+    JSR get_random
+
     ; Wait for vertical blank before doing game logic and rendering updates
     wait_for_vblank
 
@@ -376,6 +402,27 @@ read_loop:
 
 .endproc
 
+; -----------------------------------------------------
+; 8-bit Pseudo-Random Number Generator using LFSR-like bit mixing
+; - Uses 'random_num' to hold and update the current pseudo-random value
+; - 'temp' is used as a scratch byte
+; - The routine generates a new random number in 'random_num' on each call
+; -----------------------------------------------------
+get_random:
+    LDA random_num      ; Load current random value
+
+    ; Test if we need to apply the feedback polynomial
+    ; We check bit 7 (sign bit) - if set, we'll XOR with the tap pattern
+    ASL                 ; Shift left, bit 7 -> Carry, bit 0 <- 0
+    BCC no_feedback     ; If carry clear (original bit 7 was 0), skip XOR
+
+    ; Apply feedback: XOR with $39 (binary: 00111001)
+    ; This represents taps at positions 5,4,3,0 after the shift
+    EOR #$39           ; XOR with tap pattern
+
+no_feedback:
+    STA random_num      ; Store new random value
+    RTS                 ; Return with new random value in A
 
 ;*****************************************************************
 ; Character ROM data (graphics patterns)
@@ -394,6 +441,9 @@ palette_data:
 ; Load nametable data
 nametable_data:
   .incbin "assets/screen.nam"
+
+hello_txt:
+.byte 'H','E','L','L','O',' ','W','O','R','L','D', 0
 
 ; Startup segment
 .segment "STARTUP"
