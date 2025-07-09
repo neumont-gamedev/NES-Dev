@@ -10173,12 +10173,12 @@
   },
   "MainWindow": {
     "WindowSize": {
-      "Width": 682,
-      "Height": 665
+      "Width": 681,
+      "Height": 664
     },
     "WindowLocation": {
-      "X": 0,
-      "Y": 0
+      "X": -1204,
+      "Y": 57
     },
     "WindowIsMaximized": false
   },

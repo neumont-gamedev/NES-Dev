@@ -24,14 +24,14 @@ JOYPAD1             = $4016 ; Joypad 1 (Read/Write)
 JOYPAD2             = $4017 ; Joypad 2 (Read/Write)
 
 ; Gamepad bit values
-PAD_A               = $80
-PAD_B               = $40
-PAD_SELECT          = $20
-PAD_START           = $10
-PAD_U               = $08
-PAD_D               = $04
-PAD_L               = $02
-PAD_R               = $01
+PAD_A               = %10000000
+PAD_B               = %01000000
+PAD_SELECT          = %00100000
+PAD_START           = %00010000
+PAD_U               = %00001000
+PAD_D               = %00000100
+PAD_L               = %00000010
+PAD_R               = %00000001
 
 ; Useful PPU memory addresses
 NAME_TABLE_0_ADDRESS		  = $2000

@@ -42,13 +42,15 @@ temp_ptr_high:  .res 1    ; 16-bit pointer (2 bytes)
                 .res 10   ; Pad to $10 (optional - depends on your needs)
 
 ; $10-$1F: Controller input
-controller_1:       .res 1    ; Current frame controller 1 state
-controller_2:       .res 1    ; Current frame controller 2 state
-controller_1_prev:  .res 1    ; Previous frame state for edge detection
-controller_2_prev:  .res 1    ; Previous frame state for edge detection
+controller_1:           .res 1    ; Current frame controller 1 state
+controller_2:           .res 1    ; Current frame controller 2 state
+controller_1_prev:      .res 1    ; Previous frame state for edge detection
+controller_2_prev:      .res 1    ; Previous frame state for edge detection
+controller_1_pressed:   .res 1    ; Check if pressed
+controller_1_released:  .res 1    ; Check if released
 
 ; Reserve remaining space in this section if needed
-                    .res 12   ; Pad to $20 (optional)
+                    .res 10   ; Pad to $20 (optional)
 
 ; $20-$2F: Game state variables
 game_state:     .res 1    ; Current game state
@@ -241,12 +243,17 @@ remaining_loop:
     AND #PAD_L
     BEQ not_left
       LDX player_x
-      DEX
+      CLI
+      SBC #$01
       STX player_x
 not_left:
+    LDA controller_1
     AND #PAD_R
     BEQ not_right
-      ;;
+      LDX player_x
+      CLC
+      ADC #$01
+      STX player_x
   not_right:
 
     RTS                       ; Return to caller
