@@ -9787,15 +9787,15 @@
       "ShowSettingsPanel": true,
       "ImageScale": 3,
       "ShowTileGrid": false,
-      "SelectedPreset": "BG",
-      "Source": "NesPpuMemory",
+      "SelectedPreset": "CHR",
+      "Source": "NesChrRom",
       "Format": "NesBpp2",
       "Layout": "Normal",
       "Filter": "None",
       "Background": "Default",
-      "RowCount": 16,
+      "RowCount": 32,
       "ColumnCount": 16,
-      "StartAddress": 4096,
+      "StartAddress": 0,
       "UseGrayscalePalette": false,
       "RefreshTiming": {
         "RefreshOnBreakPause": true,
@@ -9804,12 +9804,12 @@
         "RefreshCycle": 0
       },
       "WindowSize": {
-        "Width": 463,
+        "Width": 462,
         "Height": 458
       },
       "WindowLocation": {
-        "X": -588,
-        "Y": 152
+        "X": 0,
+        "Y": 0
       },
       "WindowIsMaximized": false
     },
